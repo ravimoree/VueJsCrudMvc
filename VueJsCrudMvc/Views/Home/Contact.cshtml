@@ -1,0 +1,321 @@
+﻿@{
+    ViewBag.Title = "Contact";
+    Layout = null;
+}
+<!doctype html>
+<html>
+<head>
+    <title>Form validation with Vue.js</title>
+    <meta name="description" content="Learn how to create your custom form validation with Vue.js" />
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
+</head>
+<body>
+    <style>
+        #testing-form {
+            margin: 20px;
+            border: solid 1px #ccc;
+            padding: 20px;
+            border-sizing: border-box;
+        }
+
+        .invalid {
+            border: solid 2px #ca2020 !important;
+        }
+
+        .error-message {
+            background: #fff;
+            padding: 5px 15px;
+            border: solid 1px #000;
+            margin: 10px 0;
+            color: #992323;
+            border-radius: 5px;
+        }
+
+        ul.ul-error, ul.ul-error li {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+            ul.ul-error li {
+                margin-bottom: 5px;
+            }
+
+        pre {
+            padding: 10px;
+            background: #f6f9bf;
+            border: solid 3px #000;
+            border-radius: 5px;
+        }
+    </style>
+
+    <h2>Custom form validations with Vue.js</h2>
+    <div id="testing-form" class="form-validator" data-validator-message="validator-message" data-button="btnTestValidator">
+        <div class="row">
+            <div class="col col-md-6">
+                <div class="form-group">
+                    <label>Name (* required)</label>
+                    <input type="text" class="form-control validator" data-name="Name" data-required="1" />
+                </div>
+                <div class="form-group">
+                    <label>Email (* required)</label>
+                    <input type="text" class="form-control validator" data-name="Email" data-type="email" data-required="1" />
+                </div>
+                <div class="form-group">
+                    <label>IP Address</label>
+                    <input type="text" class="form-control validator" data-name="IP Address" data-type="ip"  data-required="1" />
+                </div>
+                <div class="form-group">
+                    <label>URL Address</label>
+                    <input type="text" class="form-control validator" data-name="URL Address" data-type="url" style="width:60%"  data-required="1" />
+                </div>
+                <div class="form-group">
+                    <label>Alpha Numeric Dash Underscore</label>
+                    <input type="text" class="form-control validator" data-name="AlphaNumericDashUnderscore" data-type="alphanumericdashunderscore"  data-required="1" />
+                </div>
+            </div>
+            <div class="col col-md-6">
+                <div class="form-group">
+                    <label>Alpha Numeric</label>
+                    <input type="text" class="form-control validator" data-name="AlphaNumeric" data-type="alphanumeric"  data-required="1" />
+                </div>
+                <div class="form-group">
+                    <label>Alpha</label>
+                    <input type="text" class="form-control validator" data-name="Alpha" data-type="alpha"  data-required="1" />
+                </div>
+                <div>
+                    <label>Password</label>
+                    <input type="text" class="form-control validator" data-name="Password" data-type="password"  data-required="1" />
+                </div>
+                <div>
+                    <label>Date</label>
+                    <input type="text" class="form-control validator" data-name="Date" data-type="date"  data-required="1" />
+                </div>
+            </div>
+        </div>
+        <p><input type="button" id="btnTestValidator" value="Test Validator" class="btn btn-primary" v-on:click="testValidator"  data-required="1" /></p>
+
+        <div id="validator-message" class="error-message" v-if="validationErrors.length">
+            <b>Please correct the following error(s):</b>
+            <ul class="ul-error">
+                <li v-for="error in validationErrors">{{ error }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script>
+	bytutorialValidator = {
+		//function to check valid integer number (whole number).
+		validInteger: function (str) {
+			var re = /^\d+$/;
+			return re.test(str);
+		},
+
+		//function to check valid number.
+		validNumber: function (str) {
+			var intRegex = /^\d+$/;
+			var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
+			if (floatRegex.test(str) || intRegex.test(str)) {
+				return true;
+			}
+			return false;
+		},
+
+		//function to check valid ip address.
+		validIP: function (ipAddress) {
+			var re = new RegExp(/\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/);
+			return re.test(ipAddress);
+		},
+
+		//function to check valid url address.
+		validURL: function (url) {
+			var re = /^(ftp|http|https):\/\/(([a-zA-Z0-9$\-_.+!*'(),;:&=]|%[0-9a-fA-F]{2})+@@)?(((25[0-5]|2[0-4][0-9]|[0-1][0-9][0-9]|[1-9][0-9]|[0-9])(\.(25[0-5]|2[0-4][0-9]|[0-1][0-9][0-9]|[1-9][0-9]|[0-9])){3})|localhost|([a-zA-Z0-9\-\u00C0-\u017F]+\.)+([a-zA-Z]{2,}))(:[0-9]+)?(\/(([a-zA-Z0-9$\-_.+!*'(),;:@@&=]|%[0-9a-fA-F]{2})*(\/([a-zA-Z0-9$\-_.+!*'(),;:@@&=]|%[0-9a-fA-F]{2})*)*)?(\?([a-zA-Z0-9$\-_.+!*'(),;:@@&=\/?]|%[0-9a-fA-F]{2})*)?(\#([a-zA-Z0-9$\-_.+!*'(),;:@@&=\/?]|%[0-9a-fA-F]{2})*)?)?$/;
+			if (re.test(url)) {
+				return true;
+			} else {
+				return false;
+			}
+		},
+
+		//function to check valid email.
+		validEmail: function (email) {
+			var re = /^(([^<>()[\]\\.,;:\s@@\"]+(\.[^<>()[\]\\.,;:\s@@\"]+)*)|(\".+\"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+			return re.test(email);
+		},
+
+		//function to check valid date.
+		validDate: function (value) {
+			return!!(function(d){return(d!=='Invalid Date'&&!isNaN(d))})(new Date(value));
+		},
+
+		//function to check valid Alpha Numeric Dash and Underscore characters. Only a to z and A to Z and 0 to 9 and _ and - is allowed.
+		validAlphaNumericDashUnderscore: function(value){
+			var re = /^[a-zA-Z0-9-_]+$/;
+			return re.test(value);
+		},
+
+		//function to check valid Alpha Numeric characters. Only a to z and A to Z and 0 to 9 is allowed.
+		validAlphaNumeric: function(value){
+			var re = /^[a-zA-Z0-9]+$/;
+			return re.test(value);
+		},
+
+		//function to check valid Alpha characters. Only a to z and A to Z is allowed.
+		validAlpha: function(value){
+			var re = /^[a-zA-Z]+$/;
+			return re.test(value);
+		},
+
+		//function to check valid password. Must contain at least one English letter, one digit number, one special character and minimum 7 characters in length.
+		validPassword: function(value){
+			var re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@@$!%*?&])[A-Za-z\d$@@$!%*?&]{7,}/;
+			return re.test(value);
+		},
+
+		//function to validate fields
+		//** validatorMessages will hold the error validator message-box
+		//** formPrefix will be identified as a validator wrapper
+		validateFields: function(validatorMessages, formPrefix){
+			//Just add a class validator in the input css class
+
+			$(formPrefix + " .validator").each(function () {
+
+				//add an attribute data-type='required' for a required input
+				//this will perform a required field
+				$(this).removeClass("invalid");
+				if ($(this).val() == "" && $(this).attr("data-required") != null && ($(this).attr("data-required") == "true" || $(this).attr("data-required") == "1" || $(this).attr("data-required") == "yes")) {
+					validatorMessages.push("* " + $(this).attr("data-name") + " field is required.");
+					$(this).addClass("invalid");
+				}
+
+				//this will perform different data type
+				//add the data type attribute for each informIDual check
+				if($(this).attr("data-type") != null && $(this).val().length > 0){
+					switch($(this).attr("data-type").toLowerCase()){
+						case "integer":
+							if(!bytutorialValidator.validInteger($(this).val())){
+								validatorMessages.push("* " + $(this).attr("data-name") + " field can only contain whole number only.");
+								$(this).addClass("invalid");
+							}
+							break;
+						case "number":
+							if(!bytutorialValidator.validNumber($(this).val())){
+								validatorMessages.push("* " + $(this).attr("data-name") + " field can only contain numbers only.");
+								$(this).addClass("invalid");
+							}
+							break;
+						case "ip":
+							if(!bytutorialValidator.validIP($(this).val())){
+								validatorMessages.push("* " + $(this).attr("data-name") + " field contains an invalid ip address.");
+								$(this).addClass("invalid");
+							}
+							break;
+						case "url":
+							if(!bytutorialValidator.validURL($(this).val())){
+								validatorMessages.push("* " + $(this).attr("data-name") + " field contains an invalid url address.");
+								$(this).addClass("invalid");
+							}
+							break;
+						case "email":
+							if(!bytutorialValidator.validEmail($(this).val())){
+								validatorMessages.push("* " + $(this).attr("data-name") + " field contains an invalid email address.");
+								$(this).addClass("invalid");
+							}
+							break;
+						case "date":
+							if(!bytutorialValidator.validDate($(this).val())){
+								validatorMessages.push("* " + $(this).attr("data-name") + " field contains an invalid date.");
+								$(this).addClass("invalid");
+							}
+							break;
+						case "alphanumericdashunderscore":
+							if(!bytutorialValidator.validAlphaNumericDashUnderscore($(this).val())){
+								validatorMessages.push("* " + $(this).attr("data-name") + " field can only contain alpha numeric characters, dash and underscore symbols only.");
+								$(this).addClass("invalid");
+							}
+							break;
+						case "alphanumeric":
+							if(!bytutorialValidator.validAlphaNumeric($(this).val())){
+								validatorMessages.push("* " + $(this).attr("data-name") + " field can only contain alpha numeric characters only.");
+								$(this).addClass("invalid");
+							}
+							break;
+						case "alpha":
+							if(!bytutorialValidator.validAlpha($(this).val())){
+								validatorMessages.push("* " + $(this).attr("data-name") + " field can only contain alpha characters only.");
+								$(this).addClass("invalid");
+							}
+							break;
+						case "password":
+							if(!bytutorialValidator.validPassword($(this).val())){
+								validatorMessages.push("* " + $(this).attr("data-name") + " field must contain at least one upper case English letter, one lower case English letter, one digit number, one special character and minimum 7 characters in length.");
+								$(this).addClass("invalid");
+							}
+							break;
+					}
+				}
+			});
+
+		},
+
+		//this is the main initiator, it will accept the vueapp instance. The event will be triggered on focusout.
+		initiateValidator: function (vueApp) {
+			$(".validator").off("focusout");
+			$(".validator").on("focusout", function (event) {
+				var messageDiv = $(".form-validator").attr("data-validator-message");
+				var formID = $(".form-validator").attr("id");
+				if (messageDiv != null && $("#" + messageDiv).length > 0) {
+					if ($("#" + messageDiv).html().length > 0) {
+						var messages = new Array();
+						bytutorialValidator.validateFields(messages, "#" + formID);
+						if (typeof vueApp != "undefined") {
+							vueApp.validationErrors = messages;
+						}
+					}
+				}
+			});
+
+			//we catch the hit enter event when user in the validator input area.
+			$(".validator").off("keydown");
+			$(".validator").on("keydown", function (event) {
+				var keycode = (event.keyCode ? event.keyCode : (event.which ? event.which : event.charCode));
+				if (keycode == 13) {
+					var triggerButton = $(".form-validator").attr("data-button");
+					if (triggerButton != null && $("#" + triggerButton).length > 0) {
+						$("#" + triggerButton).click();
+					}
+					return false;
+				}
+			});
+		}
+	}
+
+	// create a vue instance
+	var validatorForm = new Vue({
+		el: '#testing-form',
+		data: {
+			validationErrors: [],
+			formModel: []
+		},
+		methods: {
+			testValidator: function (e) {
+				this.validationErrors = [];
+                console.log(this.validationErrors);
+				bytutorialValidator.validateFields(this.validationErrors, "#testing-form");
+				if (this.validationErrors.length == 0) {
+					alert("All good, you are allowed to proceed ahead!!!");
+				}
+				e.preventDefault();
+			}
+		}
+	});
+
+	//we want to auto initiate the validator if we found the .form-validator css class.
+	$(function(){
+		if ($(".form-validator").length > 0) { bytutorialValidator.initiateValidator(validatorForm); }
+	});
+    </script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+﻿@*@model IEnumerable<VueJsCrudMvc.Models.Employee>*@
+
+@{
+    ViewBag.Title = "Index";
+}
+@*<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.1/css/dataTables.bootstrap4.min.css" />*@
+
+<style>
+    .error-message {
+        display: none;
+    }
+    .fromValidation {
+        color: red;
+        display: inline-block;
+        font-size: 12px;
+        line-height: 15px;
+        margin: 5px 0 0;
+    }
+</style>
+<div id="app">
+    <h2>Index</h2>
+    <p>
+        <a v-on:click="SaveModelOpen()">Create New</a>
+    </p>
+
+    <table class="table" id="table_id">
+        @*<table id="example" class="table table-striped table-bordered" style="width:100%">*@
+        <thead>
+            <tr>
+                <th>
+                    Name
+                </th>
+                <th>
+                    Position
+                </th>
+                <th>
+                    Age
+                </th>
+                <th>
+                    Email
+                </th>
+                <th>
+                    Salary
+                </th>
+                <th>
+                    Gender
+                </th>
+                <th>
+                    Status
+                </th>
+                <th>
+                    Action
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="Employes in Employess">
+                <td>{{Employes.Name}}</td>
+                <td>{{Employes.Position}}</td>
+                <td>{{Employes.Age}}</td>
+                <td>{{Employes.Email}}</td>
+                <td>{{Employes.Salary}}</td>
+                <td>
+                    {{Employes.Gender}}
+                </td>
+                <td>
+                    {{Employes.IsActive ? 'Active' : 'Deactive'}}
+                </td>
+                <td>
+                    <a v-on:click="EditInfo(Employes.EmployeeID)" data-toggle="modal">edit</a>  |
+                    <a href="#" v-on:click="DeleteInfo(Employes.EmployeeID)">Delete </a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    @*<partial name="_modals" />*@
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Employee Form</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Name</label>
+                            <div class="col-md-10">
+                                <input v-model="employeeid" name="EmployeeID" id="EmployeeID" type="hidden" class="form-control">
+                                <input v-model="name" name="Name" id="Name" type="text" placeholder="Enter the name" class="form-control" required />
+                                <p v-if="!nameIsValid" class="error-message fromValidation" >This name field is required</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Position</label>
+                            <div class="col-md-10">
+                                <select class="form-control" v-model="pid" id="PID" name="PID">
+                                    <option v-bind:value="0" selected>Select</option>
+                                    <option v-for="positon in Positions" v-bind:value="positon.PositionID">
+                                        {{positon.Name}}
+                                    </option>
+                                </select>
+                                <p v-if="!pidIsValid" class="error-message fromValidation" >This position field is required</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Age</label>
+                            <div class="col-md-10">
+                                <input v-model.number="age" name="Age" id="Age" type="text" placeholder="Enter the age" class="form-control">
+                                <p v-if="!ageIsValid" class="error-message fromValidation" >This age field is invalid</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Salary</label>
+                            <div class="col-md-10">
+                                <input v-model="salary" name="Salary" id="Salary" type="text" placeholder="Enter the salary" class="form-control">
+                                <p v-if="!salaryIsValid" class="error-message fromValidation" >This salary field is required</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Gender</label>
+                            <div class="col-md-10">
+                                <input type="radio" id="Male" name="Gender" value="Male" v-model="gender">
+                                <label for="Male">Male</label>
+                                <input type="radio" id="Female" name="Gender" value="Female" v-model="gender">
+                                <label for="Female">Female</label>
+                                <p v-if="!genderIsValid" class="error-message fromValidation" >This gender field is required</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Status</label>
+                            <div class="col-md-10">
+                                <input type="checkbox" id="IsActive" name="IsActive" value="1" v-model="isactive">
+                                <label for="IsActive">Active</label>
+                                <p v-if="!isactiveIsValid" class="error-message fromValidation" >This is active field is required</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Email</label>
+                            <div class="col-md-10">
+                                <input v-model="email" name="Email" id="Email" type="text" placeholder="Enter the Email" class="form-control" v-on:blur="validateEmail">
+                                <p class="error-message fromValidation"  id="errorMsg"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" v-on:click="SaveBtn">Save changes</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div>
+</div>
+
+<script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="~/Scripts/VueJs/IndexVueJs.js"></script>
+
